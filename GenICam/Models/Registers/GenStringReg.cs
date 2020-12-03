@@ -38,7 +38,15 @@ namespace GenICam
         public async Task<string> GetValue()
         {
             var reply = await Get(Length);
-            Value = ASCIIEncoding.ASCII.GetString(reply.MemoryValue);
+            try
+            {
+                if (!(reply.MemoryValue is null))
+                    Value = Encoding.ASCII.GetString(reply.MemoryValue);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
 
             return Value;
         }
