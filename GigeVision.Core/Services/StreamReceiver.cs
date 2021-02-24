@@ -104,7 +104,7 @@ namespace GigeVision.Core.Models
                 while (Camera.IsStreaming)
                 {
                     length = socketRxRaw.Receive(singlePacket);
-                    if (singlePacket[4] == 0x03) //Packet
+                    if (singlePacket.Length > 1000) //Packet
                     {
                         packetRxCount++;
                         packetID = (singlePacket[6] << 8) | singlePacket[7];
@@ -121,7 +121,7 @@ namespace GigeVision.Core.Models
                             singlePacket.Slice(8, length - 8).CopyTo(slicedRowInImage);
                         }
                     }
-                    else if (singlePacket[4] == 0x02)
+                    else if (singlePacket.Length < 100)
                     {
                         if (finalPacketID == 0)
                         {

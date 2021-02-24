@@ -19,7 +19,7 @@ namespace GenICam
         public uint DisplayPrecision { get; private set; }
         public double ValueToWrite { get; set; }
 
-        public GenFloat(CategoryProperties categoryProperties, double min, double max, long inc, IncMode incMode, Representation representation, double value, string unit, IPValue pValue, Dictionary<string, IntSwissKnife> expressions)
+        public GenFloat(CategoryProperties categoryProperties, double min, double max, long inc, IncMode incMode, Representation representation, double value, string unit, IPValue pValue, Dictionary<string, IMathematical> expressions)
         {
             CategoryProperties = categoryProperties;
             Min = min;
@@ -82,17 +82,17 @@ namespace GenICam
                 return null;
         }
 
-        public double GetMax()
+        public async Task<double> GetMax()
         {
-            var pMax = ReadIntSwissKnife("pMax");
+            var pMax = await ReadIntSwissKnife("pMax");
             if (pMax != null) Max = (double)pMax;
 
             return Max;
         }
 
-        public double GetMin()
+        public async Task<double> GetMin()
         {
-            var pMin = ReadIntSwissKnife("pMin");
+            var pMin = await ReadIntSwissKnife("pMin");
             if (pMin != null) Min = (double)pMin;
 
             return Min;
@@ -149,7 +149,7 @@ namespace GenICam
             }
             else if (PValue is IntSwissKnife intSwissKnife)
             {
-                value = (Int64)intSwissKnife.Value;
+                value = (Int64)await intSwissKnife.Value;
             }
 
             return value;
@@ -205,11 +205,11 @@ namespace GenICam
         public async void SetupFeatures()
         {
             Value = await GetValue();
-            Max = GetMax();
-            Min = GetMin();
+            Max = await GetMax();
+            Min = await GetMin();
         }
 
-        private Int64? ReadIntSwissKnife(string pNode)
+        private async Task<Int64?> ReadIntSwissKnife(string pNode)
         {
             if (Expressions == null)
                 return null;
@@ -220,7 +220,7 @@ namespace GenICam
             var pValueNode = Expressions[pNode];
             if (pValueNode is IntSwissKnife intSwissKnife)
             {
-                return (Int64)intSwissKnife.Value;
+                return (Int64)await intSwissKnife.Value;
             }
 
             return null;

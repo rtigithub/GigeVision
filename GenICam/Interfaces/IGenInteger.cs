@@ -13,9 +13,9 @@ namespace GenICam
 
         List<long> GetListOfValidValue();
 
-        long GetMax();
+        Task<long> GetMax();
 
-        long GetMin();
+        Task<long> GetMin();
 
         Representation GetRepresentation();
 

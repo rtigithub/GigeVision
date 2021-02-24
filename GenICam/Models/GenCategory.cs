@@ -15,7 +15,7 @@ namespace GenICam
         public string GroupName { get; internal set; }
         public ICommand SetValueCommand { get; internal set; }
 
-        public Dictionary<string, IntSwissKnife> Expressions { get; internal set; }
+        public Dictionary<string, IMathematical> Expressions { get; internal set; }
 
         public List<ICategory> GetFeatures()
         {

@@ -39,7 +39,7 @@ namespace GenICam
         public string Unit { get; private set; }
         public long ValueToWrite { get; set; }
 
-        public GenInteger(CategoryProperties categoryProperties, long min, long max, long inc, IncMode incMode, Representation representation, long value, string unit, IPValue pValue, Dictionary<string, IntSwissKnife> expressions)
+        public GenInteger(CategoryProperties categoryProperties, long min, long max, long inc, IncMode incMode, Representation representation, long value, string unit, IPValue pValue, Dictionary<string, IMathematical> expressions)
         {
             CategoryProperties = categoryProperties;
             Min = min;
@@ -109,7 +109,7 @@ namespace GenICam
             }
             else if (PValue is IntSwissKnife intSwissKnife)
             {
-                value = (Int64)intSwissKnife.Value;
+                value = (Int64)await intSwissKnife.Value;
             }
 
             return value;
@@ -151,18 +151,18 @@ namespace GenICam
             RaisePropertyChanged(nameof(ValueToWrite));
         }
 
-        public Int64 GetMin()
+        public async Task<Int64> GetMin()
         {
-            var pMin = ReadIntSwissKnife("pMin");
+            var pMin = await ReadIntSwissKnife("pMin");
             if (pMin != null)
                 return (Int64)pMin;
 
             return Min;
         }
 
-        public Int64 GetMax()
+        public async Task<Int64> GetMax()
         {
-            var pMax = ReadIntSwissKnife("pMax");
+            var pMax = await ReadIntSwissKnife("pMax");
             if (pMax != null)
                 return (Int64)pMax;
 
@@ -215,7 +215,7 @@ namespace GenICam
             throw new NotImplementedException();
         }
 
-        private Int64? ReadIntSwissKnife(string pNode)
+        private async Task<Int64?> ReadIntSwissKnife(string pNode)
         {
             if (Expressions == null)
                 return null;
@@ -226,7 +226,7 @@ namespace GenICam
             var pValueNode = Expressions[pNode];
             if (pValueNode is IntSwissKnife intSwissKnife)
             {
-                return (Int64)intSwissKnife.Value;
+                return (Int64)await intSwissKnife.Value;
             }
 
             return null;
@@ -235,8 +235,8 @@ namespace GenICam
         public async void SetupFeatures()
         {
             Value = await GetValue();
-            Max = GetMax();
-            Min = GetMin();
+            Max = await GetMax();
+            Min = await GetMin();
             ValueToWrite = Value;
         }
 

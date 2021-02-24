@@ -11,7 +11,7 @@ namespace GenICam
         public bool Value { get; set; }
         public bool ValueToWrite { get; set; }
 
-        public GenBoolean(CategoryProperties categoryProperties, IPValue pValue, Dictionary<string, IntSwissKnife> expressions)
+        public GenBoolean(CategoryProperties categoryProperties, IPValue pValue, Dictionary<string, IMathematical> expressions)
         {
             SetValueCommand = new DelegateCommand(ExecuteSetValueCommand);
             CategoryProperties = categoryProperties;
@@ -63,7 +63,7 @@ namespace GenICam
             }
             else if (PValue is IntSwissKnife intSwissKnife)
             {
-                if (intSwissKnife.Value == 1)
+                if (await intSwissKnife.Value == 1)
                     return true;
                 else
                     return false;

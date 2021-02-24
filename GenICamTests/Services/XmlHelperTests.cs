@@ -21,11 +21,13 @@ namespace GenICam.Tests
         [TestMethod()]
         public void XmlHelperTest()
         {
-            XmlDocument xml = new XmlDocument();
-            xml.Load("GEV_B1020C_v209.xml");
+            //XmlDocument xml = new XmlDocument();
+            ////xml.Load("CXG_IP_rev03000034_190717.xml");
 
-            Gvcp gvcp = new Gvcp(new GenPort(3956));
-            XmlHelper xmlHelper = new XmlHelper("Category", xml, gvcp.GenPort);
+            Gvcp gvcp = new Gvcp("192.168.10.244");
+            var genPort = new GenPort(gvcp);
+
+            // XmlHelper xmlHelper = new XmlHelper("Category", xml, genPort);
             //var width = xmlHelper.CategoryDictionary["ImageSizeControl"].PFeatures["Width"] as GenInteger;
 
             //var value = width.GetValue();

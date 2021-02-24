@@ -1,96 +1,120 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace GenICam
 {
-    /// <summary>
-    /// this is a mathematical class for register parameter computations
-    /// </summary>
-    public class IntSwissKnife : IMathematical
+    public class Converter : IMathematical
     {
-        /// <summary>
-        /// Math Variable Parameter
-        /// </summary>
         private Dictionary<string, object> PVariables { get; set; }
+        private string FormulaFrom { get; set; }
+        private string FormulaTo { get; set; }
 
-        /// <summary>
-        /// Formula Expression
-        /// </summary>
-        private string Formula { get; set; }
+        private Slope Slope { get; set; }
 
-        /// <summary>
-        /// Formula Result
-        /// </summary>
-        public Task<double> Value { get; private set; }
+        public object PValue { get; private set; }
 
-        /// <summary>
-        /// Main Method that calculate the given formula
-        /// </summary>
-        /// <param name="gvcp"></param>
-        /// <param name="formula"></param>
-        /// <param name="pVarible"></param>
-        /// <param name="value"></param>
-        public IntSwissKnife(string formula, Dictionary<string, object> pVaribles)
+        public Task<double> Value
         {
-            PVariables = pVaribles;
-            Formula = formula;
-
-            //Prepare Expression
-            Formula = Formula.Replace(" ", "");
-            List<char> opreations = new List<char> { '(', '+', '-', '/', '*', '=', '?', ':', ')', '>', '<', '&', '|', '^', '~', '%' };
-
-            foreach (var character in opreations)
-                if (opreations.Where(x => x == character).Count() > 0)
-                    Formula = Formula.Replace($"{character}", $" {character} ");
-
-            Value = ExecuteFormula();
+            get
+            {
+                return ExecuteFormulaFrom();
+            }
+            set
+            {
+                Value = ExecuteFormulaTo();
+            }
         }
 
-        /// <summary>
-        /// this method calculates the formula and returns the result
-        /// </summary>
-        /// <param name="intSwissKnife"></param>
-        /// <returns></returns>
-        private async Task<double> ExecuteFormula()
+        public Converter(string formulaTo, string formulaFrom, object pValue, Slope slope, Dictionary<string, object> pVariables = null)
         {
-            foreach (var word in Formula.Split())
+            FormulaTo = formulaTo;
+            FormulaFrom = formulaFrom;
+            PVariables = pVariables;
+            PValue = pValue;
+            Slope = slope;
+        }
+
+        private async Task<double> ExecuteFormulaFrom()
+        {
+            if (PValue != null)
             {
-                if (PVariables != null)
+                var nullableValue = await ReadPValue(PValue);
+                if (nullableValue != null)
+                    FormulaFrom.Replace("To", nullableValue.ToString());
+                else
+                    throw new Exception("Failed to read register value", new InvalidDataException());
+            }
+            foreach (var word in FormulaFrom.Split())
+            {
+                foreach (var pVariable in PVariables)
                 {
-                    foreach (var pVariable in PVariables)
+                    if (pVariable.Key.Equals(word))
                     {
-                        if (pVariable.Key.Equals(word))
-                        {
-                            string value = "";
-                            //ToDo : Cover all cases
-                            if (pVariable.Value is GenInteger integer)
-                                value = (await integer.GetValue()).ToString();
-                            else if (pVariable.Value is GenIntReg intReg)
-                                value = (await intReg.GetValue()).ToString();
-                            else if (pVariable.Value is GenMaskedIntReg genMaskedIntReg)
-                                value = (await genMaskedIntReg.GetValue()).ToString();
-                            else if (pVariable.Value is IntSwissKnife intSwissKnife1)
-                                value = (await intSwissKnife1.GetValue()).ToString();
-                            else if (pVariable.Value is GenFloat genFloat)
-                                value = (await genFloat.GetValue()).ToString();
+                        string value = "";
+                        var nullableValue = await ReadPValue(pVariable.Value);
+                        if (nullableValue != null)
+                            value = nullableValue.ToString();
+                        else
+                            throw new Exception("Failed to read register value", new InvalidDataException());
 
-                            if (value == "")
-                                throw new Exception("Failed to read register value", new InvalidDataException());
-
-                            Formula = Formula.Replace(word, value);
-                            break;
-                        }
+                        FormulaFrom = FormulaFrom.Replace(word, value);
+                        break;
                     }
                 }
             }
 
-            if (Formula != string.Empty)
-                return Evaluate(Formula);
+            return Evaluate(FormulaFrom);
+        }
 
-            return 0;
+        private async Task<double> ExecuteFormulaTo()
+        {
+            if (PValue != null)
+            {
+                var nullableValue = await ReadPValue(PValue);
+                if (nullableValue != null)
+                    FormulaFrom.Replace("From", nullableValue.ToString());
+                else
+                    throw new Exception("Failed to read register value", new InvalidDataException());
+            }
+            foreach (var word in FormulaTo.Split())
+            {
+                foreach (var pVariable in PVariables)
+                {
+                    if (pVariable.Key.Equals(word))
+                    {
+                        string value = "";
+                        var nullableValue = await ReadPValue(pVariable.Value);
+                        if (nullableValue != null)
+                            value = nullableValue.ToString();
+                        else
+                            throw new Exception("Failed to read register value", new InvalidDataException());
+
+                        FormulaTo = FormulaTo.Replace(word, value);
+                        break;
+                    }
+                }
+            }
+
+            return Evaluate(FormulaFrom);
+        }
+
+        private async Task<IConvertible> ReadPValue(object pValue)
+        {
+            //ToDo : Cover all cases
+            if (pValue is GenInteger integer)
+                return await integer.GetValue();
+            else if (pValue is GenIntReg intReg)
+                return await intReg.GetValue();
+            else if (pValue is GenMaskedIntReg genMaskedIntReg)
+                return await genMaskedIntReg.GetValue();
+            else if (pValue is IntSwissKnife intSwissKnife1)
+                return await intSwissKnife1.GetValue();
+            else if (pValue is GenFloat genFloat)
+                return await genFloat.GetValue();
+
+            return null;
         }
 
         /// <summary>
@@ -131,6 +155,20 @@ namespace GenICam
                             isEqual = false;
                             break;
 
+                        case "(":
+                        case "+":
+                        case "-":
+                        case "/":
+                        case "=":
+                            isEqual = true;
+                            isPower = false;
+                            opreators.Push(word);
+                            break;
+
+                        case "?":
+                        case ":":
+                        case "&":
+                        case "|":
                         case ">":
                             if (isEqual)
                             {
@@ -159,20 +197,6 @@ namespace GenICam
                             isPower = false;
                             break;
 
-                        case "=":
-                            isEqual = true;
-                            isPower = false;
-                            opreators.Push(word);
-                            break;
-
-                        case "(":
-                        case "+":
-                        case "-":
-                        case "/":
-                        case "?":
-                        case ":":
-                        case "&":
-                        case "|":
                         case "%":
                         case "^":
                         case "~":
@@ -477,19 +501,12 @@ namespace GenICam
                 return long.Parse(value, System.Globalization.NumberStyles.HexNumber);
             }
 
-            try
-            {
-                return long.Parse(value); ;
-            }
-            catch (Exception ex)
-            {
-            }
-            return 0;
+            return long.Parse(value); ;
         }
 
-        public async Task<Int64> GetValue()
+        public async Task<long> GetValue()
         {
-            return (Int64)await ExecuteFormula();
+            return (Int64)await ExecuteFormulaFrom();
         }
     }
 }

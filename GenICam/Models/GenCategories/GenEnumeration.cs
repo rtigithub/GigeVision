@@ -20,7 +20,7 @@ namespace GenICam
 
         public long ValueToWrite { get; set; }
 
-        public GenEnumeration(CategoryProperties categoryProperties, Dictionary<string, EnumEntry> entries, IPValue pValue, Dictionary<string, IntSwissKnife> expressions = null)
+        public GenEnumeration(CategoryProperties categoryProperties, Dictionary<string, EnumEntry> entries, IPValue pValue, Dictionary<string, IMathematical> expressions = null)
         {
             CategoryProperties = categoryProperties;
             Entries = entries;
@@ -33,14 +33,14 @@ namespace GenICam
 
         public async Task<long> GetIntValue()
         {
-            if (PValue is IRegister Register)
+            if (PValue is IRegister register)
             {
-                if (Register.AccessMode != GenAccessMode.WO)
+                if (register.AccessMode != GenAccessMode.WO)
                 {
-                    var length = Register.GetLength();
+                    var length = register.GetLength();
                     byte[] pBuffer;
 
-                    var reply = await Register.Get(length);
+                    var reply = await register.Get(length);
                     if (reply.IsSentAndReplyReceived && reply.Reply[0] == 0)
                     {
                         if (reply.MemoryValue != null)
@@ -64,7 +64,7 @@ namespace GenICam
             }
             else if (PValue is IntSwissKnife intSwissKnife)
             {
-                return (Int64)intSwissKnife.Value;
+                return (long)(await intSwissKnife.Value);
             }
 
             return Value;
@@ -142,7 +142,7 @@ namespace GenICam
 
         public async void SetupFeatures()
         {
-            Value = await GetIntValue();
+            Value = (long)(await GetIntValue());
 
             ValueToWrite = Entries.Values.ToList().IndexOf(GetCurrentEntry(Value));
         }

@@ -22,10 +22,10 @@ namespace GenICam
         /// </summary>
         public GenAccessMode AccessMode { get; private set; }
 
-        public Dictionary<string, IntSwissKnife> Expressions { get; set; }
+        public Dictionary<string, IMathematical> Expressions { get; set; }
         public IGenPort GenPort { get; }
 
-        public GenIntReg(long address, long length, GenAccessMode accessMode, Dictionary<string, IntSwissKnife> expressions, IGenPort genPort)
+        public GenIntReg(long address, long length, GenAccessMode accessMode, Dictionary<string, IMathematical> expressions, IGenPort genPort)
         {
             Address = address;
             Length = length;
