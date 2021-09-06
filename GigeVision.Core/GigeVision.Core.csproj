@@ -36,7 +36,7 @@ Fix Discovery for all cameras in network
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Stira.WpfCore" Version="1.0.1" />
+    <PackageReference Include="Stira.WpfCore" Version="1.1.0" />
     <PackageReference Include="System.IO.Pipelines" Version="5.0.1" />
   </ItemGroup>
 </Project>
