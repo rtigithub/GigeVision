@@ -17,7 +17,7 @@ namespace GigeVisionWpfTest2
             InitializeComponent();
             DataContext = this;
             camera = new();
-            camera.IP = "192.168.10.244";
+            camera.IP = "192.168.2.22";
             camera.FrameReady += FrameReady;
             image.WidthImage = 1032;
             image.HeightImage = 1032;
@@ -50,7 +50,7 @@ namespace GigeVisionWpfTest2
         private async void Button_Click(object sender, RoutedEventArgs e)
         {
             timer.Start();
-            await camera.StartStreamAsync("192.168.10.172").ConfigureAwait(false);
+            await camera.StartStreamAsync("192.168.2.22").ConfigureAwait(false);
         }
 
         private async void Button_Click_1(object sender, RoutedEventArgs e)

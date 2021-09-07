@@ -19,7 +19,7 @@ namespace DeviceControl.Test.Wpf.ViewModels
 
         public MainWindowViewModel()
         {
-            IGvcp gvcp = new Gvcp("192.168.10.244");
+            IGvcp gvcp = new Gvcp("192.168.2.22");
             DeviceControl = new DeviceControlViewModel(gvcp);
         }
     }

@@ -114,7 +114,7 @@ namespace DeviceControl.Wpf.ViewModels
             await ReadDeviceControlRegisters();
             CameraRegistersList = new List<CameraRegisterDTO>();
 
-            foreach (var categoryFeature in Gvcp.RegistersGroupDictionary["Root"].Category)
+            foreach (var categoryFeature in Gvcp.RegistersGroupDictionary["RootCategory"].Category)
             {
                 var child = await GetChild(categoryFeature);
                 if (child != null)
